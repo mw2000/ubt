@@ -1,0 +1,8 @@
+[package]
+name = "ubt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+alloy-primitives = "0.8.19"
+blake3 = "1.5.5"
