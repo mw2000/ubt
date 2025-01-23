@@ -2,7 +2,18 @@
 name = "ubt"
 version = "0.1.0"
 edition = "2021"
+description = "A Unified Binary Tree implementation for Ethereum state storage"
+license = "MIT"
+repository = "https://github.com/yourusername/ubt"
+documentation = "https://docs.rs/ubt"
+readme = "README.md"
+keywords = ["ethereum", "merkle", "tree", "state", "binary"]
+categories = ["cryptography", "data-structures"]
 
 [dependencies]
 alloy-primitives = "0.8.19"
 blake3 = "1.5.5"
+
+[dev-dependencies]
+criterion = "0.5"  # For benchmarking
+proptest = "1.4"   # For property testing

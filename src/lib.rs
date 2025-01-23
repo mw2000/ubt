@@ -7,8 +7,33 @@
 //!  - Insert a key-value pair
 //!  - Compute the root hash (merkelization)
 //!  - Provide helper functions to interoperate with alloy's types
+//!
+//! # Features
+//!
+//! - Binary tree structure with 32-byte keys and values
+//! - Efficient Merkle proof generation
+//! - BLAKE3-based merkleization
+//! - Support for account, storage, and code data in a unified structure
+//!
+//! # Example
+//!
+//! ```rust
+//! use ubt::{BinaryTree, address_to_32};
+//! use alloy_primitives::{Address, B256};
+//!
+//! let mut tree = BinaryTree::new();
+//!
+//! // Insert account data
+//! let address = Address::from([0x42; 20]);
+//! let key = address_to_32(address);
+//! let value = B256::from([0xFF; 32]);
+//!
+//! tree.insert(key, value);
+//! let root = tree.root_hash();
+//! ```
 
 mod node;
+mod proof;
 mod tree;
 mod utils;
 
@@ -18,43 +43,10 @@ pub use utils::address_to_32;
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{Address, B256};
-
     use super::*;
 
-    #[test]
-    fn test_insert_and_root_hash() {
-        let mut tree = BinaryTree::new();
-
-        // Example: Insert a single key
-        let key = [0xAA; 32];
-        let value = B256::from([0xBB; 32]);
-        tree.insert(key, value);
-
-        let root = tree.root_hash();
-        assert_ne!(root, B256::ZERO, "Root should not be empty");
-    }
-
-    #[test]
-    fn test_two_stems_different_bit() {
-        let mut tree = BinaryTree::new();
-        let key1 = [0x00; 32];
-        let key2 = [0x80; 32]; // differs in the top bit
-        let val1 = B256::from([0x11; 32]);
-        let val2 = B256::from([0x22; 32]);
-
-        tree.insert(key1, val1);
-        tree.insert(key2, val2);
-
-        let root = tree.root_hash();
-        assert_ne!(root, B256::ZERO, "Root should not be empty");
-    }
-
-    #[test]
-    fn test_address_conversion() {
-        // Example: Convert an Ethereum address into a 32-byte key
-        let addr = Address::from([0x11u8; 20]);
-        let arr32 = address_to_32(addr);
-        assert_eq!(&arr32[12..], &[0x11u8; 20]);
-    }
+    mod common;
+    mod node_tests;
+    mod tree_tests;
+    mod utils_tests;
 }

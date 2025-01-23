@@ -1,6 +1,7 @@
 use alloy_primitives::B256;
 
 use crate::node::{InternalNode, Node, StemNode};
+use crate::proof::{MerkleProof, ProofNode};
 
 /// Our top-level binary tree wrapper. Holds the root `Node`.
 #[derive(Clone, Debug)]
@@ -40,6 +41,103 @@ impl BinaryTree {
     /// Follows the hashing rules from the proposal.
     pub fn root_hash(&self) -> B256 {
         Self::hash_node(&self.root)
+    }
+
+    /// Generate a Merkle proof for a given key
+    pub fn generate_proof(&self, key: &[u8; 32]) -> MerkleProof {
+        let mut proof = MerkleProof::new();
+        Self::build_proof(&self.root, key, 0, &mut proof);
+        proof
+    }
+
+    fn build_proof(node: &Node, key: &[u8; 32], depth: usize, proof: &mut MerkleProof) -> bool {
+        match node {
+            Node::Empty => false,
+            Node::Stem(stem_node) => {
+                if stem_node.stem == key[..31] {
+                    // Found the target stem node
+                    proof.add_stem(*stem_node.clone());
+                    true
+                } else {
+                    // Different stem, add its hash
+                    proof.add_hash(Self::hash_node(node));
+                    false
+                }
+            }
+            Node::Internal(internal) => {
+                let bit = Self::bit_of(&key[..31], depth);
+                if bit == 0 {
+                    // Going left, include right hash
+                    proof.add_hash(Self::hash_node(&internal.right));
+                    Self::build_proof(&internal.left, key, depth + 1, proof)
+                } else {
+                    // Going right, include left hash
+                    proof.add_hash(Self::hash_node(&internal.left));
+                    Self::build_proof(&internal.right, key, depth + 1, proof)
+                }
+            }
+        }
+    }
+
+    /// Verify a Merkle proof for a key-value pair
+    pub fn verify_proof(
+        proof: &MerkleProof,
+        key: &[u8; 32],
+        value: &B256,
+        root_hash: &B256,
+    ) -> bool {
+        let mut current_hash = B256::ZERO;
+        let mut depth = 0;
+        let mut found_stem = false;
+
+        // Traverse proof path from leaf to root
+        for node in proof.path.iter().rev() {
+            match node {
+                ProofNode::Hash(sibling_hash) => {
+                    if !found_stem {
+                        // Haven't found stem node yet, invalid proof
+                        return false;
+                    }
+
+                    // Combine with sibling based on path bit
+                    let bit = Self::bit_of(&key[..31], depth);
+                    current_hash = if bit == 0 {
+                        Self::blake3_hash_64(&current_hash.0, &sibling_hash.0)
+                    } else {
+                        Self::blake3_hash_64(&sibling_hash.0, &current_hash.0)
+                    };
+                    depth += 1;
+                }
+                ProofNode::Stem(stem_node) => {
+                    if found_stem {
+                        // Multiple stem nodes, invalid proof
+                        return false;
+                    }
+                    if stem_node.stem != key[..31] {
+                        // Wrong stem node
+                        return false;
+                    }
+
+                    // Verify value in stem node
+                    let subindex = key[31] as usize;
+                    if stem_node.values[subindex].as_ref() != Some(value) {
+                        return false;
+                    }
+
+                    // Calculate stem node hash
+                    let mut buf = [0u8; 64];
+                    buf[..31].copy_from_slice(&stem_node.stem);
+                    buf[31] = 0x00;
+                    let subroot = Self::merkleize_leaves(&stem_node.values);
+                    buf[32..64].copy_from_slice(&subroot.0);
+                    current_hash = Self::blake3_hash_64(&buf[..32], &buf[32..64]);
+                    found_stem = true;
+                }
+            }
+        }
+
+        // Final hash should match root
+        found_stem && &current_hash == root_hash
     }
 
     // ------------------------
