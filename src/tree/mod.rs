@@ -6,6 +6,7 @@ use crate::proof::{MerkleProof, ProofNode};
 /// Our top-level binary tree wrapper. Holds the root `Node`.
 #[derive(Clone, Debug)]
 pub struct BinaryTree {
+    /// The root node of the tree.
     pub root: Node,
 }
 
@@ -25,7 +26,7 @@ impl BinaryTree {
     /// returning a reference to self for chaining.
     ///
     /// - `key`: 32-byte key, where the first 31 bytes are the "stem"
-    ///          and the last byte is the "subindex".
+    ///   and the last byte is the "subindex".
     /// - `value`: the 32-byte value to store.
     pub fn insert(&mut self, key: [u8; 32], value: B256) -> &mut Self {
         self.root = Self::insert_recursive(
@@ -213,7 +214,7 @@ impl BinaryTree {
         }
     }
 
-    /// Create a new StemNode for a given key and value. Subindex is key[31].
+    /// Create a new `StemNode` for a given key and value. Subindex is key[31].
     fn create_stem_node(key: &[u8; 32], value: B256) -> Node {
         let mut stem_node = StemNode {
             stem: [0u8; 31],
@@ -254,7 +255,7 @@ impl BinaryTree {
         let mut level = Vec::with_capacity(256);
         let mut next_level = Vec::with_capacity(128);
 
-        for v in values.iter() {
+        for v in values {
             level.push(match v {
                 Some(val) => B256::from(blake3::hash(&val.0).as_bytes()),
                 None => B256::ZERO,
