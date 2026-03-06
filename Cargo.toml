@@ -1,9 +1,11 @@
 [package]
 name = "ubt"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.85"
 description = "A Unified Binary Tree implementation for Ethereum state storage"
 license = "MIT"
+authors = ["Mihir Wadekar <mwadekar2000@gmail.com>", "Sisyphus (AI) <clio-agent@sisyphuslabs.ai>"]
 repository = "https://github.com/yourusername/ubt"
 documentation = "https://docs.rs/ubt"
 readme = "README.md"
@@ -11,9 +13,23 @@ keywords = ["ethereum", "merkle", "tree", "state", "binary"]
 categories = ["cryptography", "data-structures"]
 
 [dependencies]
-alloy-primitives = "0.8.19"
-blake3 = "1.5.5"
+alloy-primitives = "1.5"
+blake3 = "1.8"
 
 [dev-dependencies]
-criterion = "0.5"  # For benchmarking
-proptest = "1.4"   # For property testing
+criterion = "0.5"
+proptest = "1.10"
+
+[lints.rust]
+missing_docs = "warn"
+unreachable_pub = "warn"
+unused_must_use = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Allow common pedantic false positives
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"

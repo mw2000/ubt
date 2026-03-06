@@ -59,7 +59,7 @@ fn test_hash_ordering() {
         ([0x33; 32], B256::from([0xCC; 32])),
     ];
 
-    for (key, value) in pairs.iter() {
+    for (key, value) in &pairs {
         tree1.insert(*key, *value);
     }
 

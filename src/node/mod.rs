@@ -14,7 +14,9 @@ pub enum Node {
 /// An internal node has two children, each is a `Node`.
 #[derive(Clone, Debug)]
 pub struct InternalNode {
+    /// Left child subtree.
     pub left: Node,
+    /// Right child subtree.
     pub right: Node,
 }
 
@@ -22,6 +24,8 @@ pub struct InternalNode {
 /// Each value is optional (None = empty).
 #[derive(Clone, Debug)]
 pub struct StemNode {
+    /// The 31-byte stem prefix shared by all values in this node.
     pub stem: [u8; 31],
+    /// 256 optional values indexed by the final byte of the key.
     pub values: [Option<B256>; 256],
 }

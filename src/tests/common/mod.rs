@@ -1,11 +1,11 @@
-pub mod test_utils {
+pub(super) mod test_utils {
     use crate::{BinaryTree, Node};
 
     /// Verifies basic tree invariants:
     /// - Stem nodes have correct structure
     /// - Internal nodes have at least one non-empty child
     /// - Tree depth doesn't exceed 248
-    pub fn verify_tree_invariants(tree: &BinaryTree) -> bool {
+    pub(crate) fn verify_tree_invariants(tree: &BinaryTree) -> bool {
         verify_node_invariants(&tree.root, 0)
     }
 
@@ -18,7 +18,7 @@ pub mod test_utils {
             Node::Empty => true,
             Node::Stem(stem_node) => {
                 // Verify at least one value exists
-                stem_node.values.iter().any(|v| v.is_some())
+                stem_node.values.iter().any(std::option::Option::is_some)
             }
             Node::Internal(internal) => {
                 // Verify at least one child is non-empty
